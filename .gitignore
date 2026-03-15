@@ -1,0 +1,11 @@
+# Fichiers compilés
+target/
+*.class
+
+# Fichiers de configuration Eclipse
+.settings/
+.project
+.classpath
+
+# Fichiers de base de données (si tu en mets plus tard)
+*.db

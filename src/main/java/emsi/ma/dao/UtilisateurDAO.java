@@ -44,8 +44,10 @@ public class UtilisateurDAO {
 			PreparedStatement ps=cnx.prepareStatement(sql);
 			ps.setString(1, email);
 			ps.setString(2, motDePasse);
+			//had rs ghadi ikon fiha resultat dyal requet sql yaeni tableau fih gae hadok li eadhm email w modpass shah de type Result
 			ResultSet rs = ps.executeQuery(); 
 			if (rs.next()) {
+				//had next() bhala ka tsawal wach rs fiha les donne kant true ka dir had chi ltaht non mkdir walo 
 				utilisateurtouver = new Utilisateur(
                     rs.getInt("id"), rs.getString("nom"), rs.getString("prenom"),
                     rs.getString("email"), rs.getString("mot_de_passe"), rs.getString("telephone"),

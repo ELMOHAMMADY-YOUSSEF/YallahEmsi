@@ -44,4 +44,10 @@ public class WalletService {
 
         return "Mabrouk! Tzadét " + montant + " MAD f l'Wallet dyal " + user.getNom();
     }
+
+    public BigDecimal getSolde(Integer utilisateurId) {
+        return walletRepository.findByUtilisateurId(utilisateurId)
+                .map(Wallet::getSolde)
+                .orElse(BigDecimal.ZERO); // Ila ma3ndouch wallet, y-rjje3 0
+    }
 }

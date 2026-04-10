@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/wallets")
 public class WalletController {
@@ -16,5 +17,9 @@ public class WalletController {
     @PostMapping("/recharger")
     public String recharger(@RequestParam Integer utilisateurId, @RequestParam BigDecimal montant) {
         return walletService.rechargerWallet(utilisateurId, montant);
+    }
+    @GetMapping("/solde/{utilisateurId}")
+    public BigDecimal getSolde(@PathVariable Integer utilisateurId) {
+        return walletService.getSolde(utilisateurId);
     }
 }

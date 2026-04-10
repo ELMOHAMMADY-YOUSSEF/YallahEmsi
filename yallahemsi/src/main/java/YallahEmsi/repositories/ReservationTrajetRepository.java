@@ -8,6 +8,12 @@ import java.util.List;
 
 @Repository
 public interface ReservationTrajetRepository extends JpaRepository<ReservationTrajet, Integer> {
-    // Njibou ga3 les réservations dyal wa7d l'étudiant
+
+    // N-jibou les demandes dyal conducteur li baqin "en_attente"
+    List<ReservationTrajet> findByTrajetConducteurIdAndStatutReservation(
+            Integer conducteurId,
+            ReservationTrajet.StatutReservation statut
+    );
+
     List<ReservationTrajet> findByPassagerId(Integer passagerId);
 }

@@ -3,6 +3,7 @@ package YallahEmsi.repositories;
 import YallahEmsi.entities.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 import java.util.Optional;
 
@@ -14,4 +15,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Intege
 
     // N9elbo 3la etudiant b l'CNE
     Optional<Utilisateur> findByCne(String cne);
+
+    Optional<Utilisateur> findByEmailAndMotDePasse(String email, String motDePasse);
 }

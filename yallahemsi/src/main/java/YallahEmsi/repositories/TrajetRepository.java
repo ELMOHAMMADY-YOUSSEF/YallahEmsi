@@ -13,4 +13,7 @@ public interface TrajetRepository extends JpaRepository<Trajet, Integer> {
 
     // Njibou ga3 les trajets li darhom wa7d l'conducteur
     List<Trajet> findByConducteurId(Integer conducteurId);
+
+    // Jib lina ghir les trajets li l'date dyalhom baqa ma-faytach (After)
+    List<YallahEmsi.entities.Trajet> findByDateHeureDepartAfter(java.time.LocalDateTime date);
 }

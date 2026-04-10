@@ -6,6 +6,7 @@ import YallahEmsi.services.TrajetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -28,7 +29,8 @@ public class TrajetController {
     // API bach n-jibou la liste dyal ga3 les trajets (@GetMapping 7it ghan-9raw data)
     @GetMapping("/tous")
     public List<Trajet> getAllTrajets() {
-        return trajetService.voirTousLesTrajets();
+        // Hna ma-n-b9awch n-diro findAll(), n-diro l'filtre li sawbna
+        return trajetRepository.findByDateHeureDepartAfter(LocalDateTime.now());
     }
 
     @GetMapping("/mes-trajets/{conducteurId}")

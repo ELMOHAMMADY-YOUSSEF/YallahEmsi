@@ -19,4 +19,6 @@ public class Hay {
     @ManyToOne
     @JoinColumn(name = "ville_id", nullable = false)
     private Ville ville;
+
+
 }

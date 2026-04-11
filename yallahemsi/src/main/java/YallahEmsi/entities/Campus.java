@@ -17,4 +17,9 @@ public class Campus {
     private String nom;
 
     private String adresse;
+
+    // ZDTI HADI BACH N-RBTOU L'CAMPUS B L'VILLE
+    @ManyToOne
+    @JoinColumn(name = "ville_id", nullable = false)
+    private Ville ville;
 }

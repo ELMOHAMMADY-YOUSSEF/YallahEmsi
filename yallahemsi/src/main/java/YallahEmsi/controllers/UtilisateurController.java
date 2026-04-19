@@ -1,37 +1,45 @@
 package YallahEmsi.controllers;
 
 import YallahEmsi.entities.Utilisateur;
-import YallahEmsi.services.UtilisateurService;
+import YallahEmsi.entities.Voiture;
+import YallahEmsi.repositories.UtilisateurRepository;
+import YallahEmsi.repositories.VoitureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin("*")
-@RestController // Katgoul l'Spring: "Hada howa Sserbay li ghadi y-jawb 3la les requêtes"
-@RequestMapping("/api/utilisateurs") // L'adresse dyal had Sserbay
+@RestController
+@RequestMapping("/api/utilisateurs")
 public class UtilisateurController {
 
     @Autowired
-    private UtilisateurService utilisateurService;
-
-    // L'API bach n-ssjlou etudiant jdid (@PostMapping 7it ghadi n-ssifto données jdad)
-    @PostMapping("/inscription")
-    public String inscrire(@RequestBody Utilisateur etudiant) {
-        // Kan-chedou l'etudiant li ja mn Postman, w kan-3tiwh l'Service y-tkelaf bih
-        return utilisateurService.inscrireEtudiant(etudiant);
-    }
+    private UtilisateurRepository utilisateurRepo;
 
     @Autowired
-    private YallahEmsi.repositories.UtilisateurRepository utilisateurRepository;
+    private VoitureRepository voitureRepo;
 
-    // API dyal l'Login bstiha
-    @PostMapping("/login")
-    public Object login(@RequestParam String email, @RequestParam String motDePasse) {
-        var user = utilisateurRepository.findByEmailAndMotDePasse(email, motDePasse);
-
-        if (user.isPresent()) {
-            return user.get(); // Ila l9ah, kay-rjje3 l'utilisateur kamel l'React
+    // 1. INSCRIPTION
+    @PostMapping("/inscription")
+    public Utilisateur inscrire(@RequestBody Utilisateur user) {
+        // Qadina l'Enum w 7yedna sauvegarde dyal voiture bo7dha 7it 3ndk CascadeType.ALL f Utilisateur.java
+        if (user.getRole() == Utilisateur.Role.conducteur && user.getVoiture() != null) {
+            // Spring Boot ghadi y-sauvgardiha automatiquement.
         } else {
-            return "Erreur: Email awla mot de passe ghaltin!";
+            user.setVoiture(null); // Ila kan etudiant ma-khassouch tomobil
+        }
+        return utilisateurRepo.save(user);
+    }
+
+    // 2. LOGIN (KHASS Y-RDD L'OBJET KAMEL)
+    @PostMapping("/login")
+    public Utilisateur login(@RequestBody Utilisateur loginRequest) {
+        // L'Méthode findByEmailAndMotDePasse khassha t-koun 3ndk f UtilisateurRepository
+        Utilisateur user = utilisateurRepo.findByEmailAndMotDePasse(loginRequest.getEmail(), loginRequest.getMotDePasse()).orElse(null);
+
+        if (user != null) {
+            return user; // Kan-rddou user kamel (bach React y-khbiyh f localStorage w y-3qel 3la smito)
+        } else {
+            throw new RuntimeException("Email awla mot de passe ghalet");
         }
     }
 }

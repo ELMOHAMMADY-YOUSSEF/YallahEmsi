@@ -44,4 +44,8 @@ public class Utilisateur {
     public enum Role {
         etudiant, conducteur, admin
     }
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "voiture_id", referencedColumnName = "id")
+    private Voiture voiture;
 }

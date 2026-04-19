@@ -1,4 +1,5 @@
 package YallahEmsi.entities;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,10 @@ public class Voiture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @OneToOne(mappedBy = "voiture") // (Awla @ManyToOne 3la 7sab ach dayr)
+    @JsonIgnore // ZID HADI BACH T-7BESS L'BOUCLE INFINIE 🛑
+    private Utilisateur utilisateur;
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")

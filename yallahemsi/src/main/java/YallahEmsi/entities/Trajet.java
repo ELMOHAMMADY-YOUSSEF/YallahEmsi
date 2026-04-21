@@ -51,6 +51,8 @@ public class Trajet {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "ENUM('en_attente', 'en_cours', 'termine', 'annule') DEFAULT 'en_attente'")
     private StatutTrajet statut = StatutTrajet.en_attente;
+    @Column(name = "audio_url", length = 255)
+    private String audioUrl;
 
     public enum TypeTrajet { aller, retour }
     public enum StatutTrajet { en_attente, en_cours, termine, annule }

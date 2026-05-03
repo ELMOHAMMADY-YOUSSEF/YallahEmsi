@@ -29,25 +29,14 @@ public class TrajetController {
     private TrajetRepository trajetRepository;
 
     // API bach n-publiw trajet jdid
-    @PostMapping(value = "/publier", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String publier(@RequestParam("trajet") String trajetJson,
-                          @RequestParam(value = "audio", required = false) MultipartFile audio) {
+    @PostMapping("/publier")
+    public String publier(@RequestBody Trajet trajet) {
         try {
-            // 1. Kan-trjmou l'JSON l'Objet Trajet
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule()); // Bach ma-y-tferge3ch f l-Weqt w t-Tarikh
-            Trajet trajet = mapper.readValue(trajetJson, Trajet.class);
+            // Hna Spring Boot kay-chd l-JSON w kay-7wlou l-Objet Trajet bo7do (Bla ObjectMapper)
 
-            // 2. Kan-sauvegardiw l'Fichier Audio (Ila ssifto l-Conducteur)
-            if (audio != null && !audio.isEmpty()) {
-                String fileName = UUID.randomUUID().toString() + ".webm"; // Smiya m-khrbqa bach ma-y-t3awdouch
-                Path path = Paths.get("uploads/audios/" + fileName);
-                Files.createDirectories(path.getParent()); // Creeyi d-dossier ila makaynch
-                Files.write(path, audio.getBytes()); // 7et l'fichier
-                trajet.setAudioUrl(fileName); // Ssjjel ghir s-smiya f MySQL
-            }
+            // Ila knti baghi t-valider chi 7aja 9bel ma t-sauvegarder t-qder d-dirha hna
 
-            // 3. Kan-sauvegardiw l'Trajet f MySQL
+            // Kan-sauvegardiw l'Trajet f MySQL nishan
             return trajetService.publierTrajet(trajet);
 
         } catch (Exception e) {

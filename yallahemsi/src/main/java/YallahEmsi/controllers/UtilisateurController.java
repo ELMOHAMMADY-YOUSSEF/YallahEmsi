@@ -21,12 +21,17 @@ public class UtilisateurController {
     // 1. INSCRIPTION
     @PostMapping("/inscription")
     public Utilisateur inscrire(@RequestBody Utilisateur user) {
-        // Qadina l'Enum w 7yedna sauvegarde dyal voiture bo7dha 7it 3ndk CascadeType.ALL f Utilisateur.java
+        // Qadina l'Enum w 7yedna sauvegarde dyal voiture bo7dha
         if (user.getRole() == Utilisateur.Role.conducteur && user.getVoiture() != null) {
-            // Spring Boot ghadi y-sauvgardiha automatiquement.
+
+            // 🔥 HADA HOWA S-STER LI ZEDNA BACH N-FOKKOU L-MOCHKIL 🔥
+            // Kan-goulou l-Tomobil: "Hada howa moulak li ghadi y-sogek!"
+            user.getVoiture().setUtilisateur(user);
+
         } else {
             user.setVoiture(null); // Ila kan etudiant ma-khassouch tomobil
         }
+
         return utilisateurRepo.save(user);
     }
 

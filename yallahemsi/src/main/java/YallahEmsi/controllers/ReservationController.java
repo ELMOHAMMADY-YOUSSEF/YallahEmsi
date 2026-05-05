@@ -75,6 +75,7 @@ public class ReservationController {
     }
 
     // 3. L'Conducteur kay-Accepter l'Demande (Hna fin kan-nqssou l'blays)
+    // 3. L'Conducteur kay-Accepter l'Demande (Hna fin kan-nqssou l'blays w l-FLOUSS 💸)
     @PostMapping("/accepter/{reservationId}")
     public String accepterReservation(@PathVariable Integer reservationId) {
         Optional<ReservationTrajet> resOpt = reservationTrajetRepository.findById(reservationId);
@@ -85,20 +86,39 @@ public class ReservationController {
 
         ReservationTrajet res = resOpt.get();
         Trajet trajet = res.getTrajet();
+        Utilisateur passager = res.getPassager();
+        Utilisateur conducteur = trajet.getConducteur();
 
-        // Kan-t2akdou mra khra blli l'blays baqin khawyin (7it yqder y-accepter chi wa7d akhor qbel mno)
-        if (trajet.getPlacesDisponibles() >= res.getPlacesReservees()) {
-            res.setStatutReservation(ReservationTrajet.StatutReservation.confirmee);
-            trajet.setPlacesDisponibles(trajet.getPlacesDisponibles() - res.getPlacesReservees());
-
-            // Kan-sauvegardiw t-tghyirat bjouj
-            trajetRepository.save(trajet);
-            reservationTrajetRepository.save(res);
-
-            return "✅ Demande Acceptée!";
+        // 1. Kan-t2akdou mra khra blli l'blays baqin khawyin
+        if (trajet.getPlacesDisponibles() < res.getPlacesReservees()) {
+            return "❌ Erreur: Ma-bqawch blays f had l'trajet bach t-accepter!";
         }
 
-        return "❌ Erreur: Ma-bqawch blays f had l'trajet bach t-accepter!";
+        // 2. Kan-jibou l-montant total dyal had l-réservation
+        BigDecimal montantTotal = res.getMontantTotal();
+
+        // 3. Kan-verifiw wach l-passager 3ndou flouss kafya f l-Wallet dyalo
+        // ⚠️ MOLA7ADA: Ila kan Wallet 3ndk Entité (Classe) bo7dha, khassk d-dir: passager.getWallet().getSolde()
+        // Hna nfhtardou anaka dayr l-Wallet fl-Utilisateur nishan (awla getSolde())
+        if (passager.getWallet().getSolde().compareTo(montantTotal) < 0) {
+            return "❌ Erreur: L'étudiant ma-3ndouch solde kafi f l'Wallet dyalo!";
+        }
+
+        // 4. Kan-nqssou l-flouss mn l-passager w kan-zidouhom l-conducteur
+        passager.getWallet().setSolde(passager.getWallet().getSolde().subtract(montantTotal));
+        conducteur.getWallet().setSolde(conducteur.getWallet().getSolde().add(montantTotal));
+
+        // 5. Kan-bdlou l-état dyal réservation w kan-nqssou l-blays
+        res.setStatutReservation(ReservationTrajet.StatutReservation.confirmee);
+        trajet.setPlacesDisponibles(trajet.getPlacesDisponibles() - res.getPlacesReservees());
+
+        // 6. Kan-sauvegardiw kolchi f MySQL (Darouri n-sauvegardiw Utilisateurs bach y-tbdl l-Wallet f Base de données)
+        utilisateurRepository.save(passager);
+        utilisateurRepository.save(conducteur);
+        trajetRepository.save(trajet);
+        reservationTrajetRepository.save(res);
+
+        return "✅ Demande Acceptée w l-flouss t-qet3ou b naja7!";
     }
 
     @GetMapping("/mes-reservations/{passagerId}")

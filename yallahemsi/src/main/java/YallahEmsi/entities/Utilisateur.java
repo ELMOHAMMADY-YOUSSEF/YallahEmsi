@@ -48,4 +48,10 @@ public class Utilisateur {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "voiture_id", referencedColumnName = "id")
     private Voiture voiture;
+
+    // 🔥 NSKHA W7DA S-S7I7A 🔥
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "wallet_id", referencedColumnName = "id")
+    private Wallet wallet;
+
 }

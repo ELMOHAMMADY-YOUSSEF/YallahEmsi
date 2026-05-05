@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore; // 👈 Zid had l-import l-fouq
 
 @Entity
 @Table(name = "Wallet")
@@ -14,8 +15,8 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    @JoinColumn(name = "utilisateur_id", unique = true)
+    @OneToOne(mappedBy = "wallet")
+    @JsonIgnore
     private Utilisateur utilisateur;
 
     @Column(precision = 10, scale = 2)
@@ -23,4 +24,5 @@ public class Wallet {
 
     @Column(length = 10)
     private String devise = "MAD";
+
 }

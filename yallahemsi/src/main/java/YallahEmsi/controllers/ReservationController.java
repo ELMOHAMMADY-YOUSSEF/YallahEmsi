@@ -28,6 +28,7 @@ public class ReservationController {
     private UtilisateurRepository utilisateurRepository;
 
     // 1. L'Étudiant (Passager) kay-ssift Demande dyal Réservation
+    // 1. L'Étudiant (Passager) kay-ssift Demande dyal Réservation
     @PostMapping("/nouvelle")
     public String nouvelleReservation(@RequestParam Integer passagerId,
                                       @RequestParam Integer trajetId,
@@ -37,7 +38,7 @@ public class ReservationController {
         Optional<Trajet> trajetOpt = trajetRepository.findById(trajetId);
 
         if (passagerOpt.isEmpty() || trajetOpt.isEmpty()) {
-            return "❌ Erreur: Utilisateur awla Trajet ma-kaynch!";
+            return "Erreur : L'utilisateur ou le trajet n'existe pas !";
         }
 
         Utilisateur passager = passagerOpt.get();
@@ -45,16 +46,26 @@ public class ReservationController {
 
         // Kan-t2akdou blli baqin l'blays f tomobil 9bel ma n-ssifto l'demande
         if (trajet.getPlacesDisponibles() < places) {
-            return "❌ Erreur: Ma-bqawch blays kafyin f had l'trajet!";
+            return " Erreur : Il n'y a plus assez de places disponibles dans ce trajet !";
+        }
+
+        // L'Calcul dyal l'Flouss (Prix par place * Nombre de places)
+        BigDecimal montant = trajet.getPrixParPlace().multiply(new BigDecimal(places));
+
+        // 🔥 VERIFICATION DYAL L-WALLET (JDID) 🔥
+        if (passager.getWallet() == null || passager.getWallet().getSolde() == null) {
+            return "❌ Erreur: Portefeuille introuvable. Veuillez recharger votre compte.";
+        }
+
+        // Kan-choufou wach l-flouss li f l-Wallet sgher mn l-Montant dyal l-Trajet
+        if (passager.getWallet().getSolde().compareTo(montant) < 0) {
+            return "❌ Erreur : Solde insuffisant ! Vous avez " + passager.getWallet().getSolde() + " MAD, mais le trajet coûte " + montant + " MAD.";
         }
 
         ReservationTrajet res = new ReservationTrajet();
         res.setPassager(passager);
         res.setTrajet(trajet);
         res.setPlacesReservees(places);
-
-        // L'Calcul dyal l'Flouss (Prix par place * Nombre de places)
-        BigDecimal montant = trajet.getPrixParPlace().multiply(new BigDecimal(places));
         res.setMontantTotal(montant);
 
         // L'Statut par défaut: EN ATTENTE
@@ -62,7 +73,7 @@ public class ReservationController {
 
         reservationTrajetRepository.save(res);
 
-        return "✅ Mabrouk! L'Demande tsiftat l'conducteur, tsna y-accepter.";
+        return "✅ Félicitations ! La demande a été envoyée au conducteur, veuillez attendre son acceptation.";
     }
 
     // 2. L'Conducteur kay-chouf ga3 les demandes li baqin "EN ATTENTE"
@@ -81,7 +92,7 @@ public class ReservationController {
         Optional<ReservationTrajet> resOpt = reservationTrajetRepository.findById(reservationId);
 
         if (resOpt.isEmpty()) {
-            return "❌ Erreur: Réservation ma-kaynach!";
+            return " Erreur : La réservation n'existe pas !";
         }
 
         ReservationTrajet res = resOpt.get();
@@ -91,7 +102,7 @@ public class ReservationController {
 
         // 1. Kan-t2akdou mra khra blli l'blays baqin khawyin
         if (trajet.getPlacesDisponibles() < res.getPlacesReservees()) {
-            return "❌ Erreur: Ma-bqawch blays f had l'trajet bach t-accepter!";
+            return "❌ Erreur : Il n'y a plus de places disponibles dans ce trajet pour accepter la réservation !";
         }
 
         // 2. Kan-jibou l-montant total dyal had l-réservation
@@ -101,7 +112,7 @@ public class ReservationController {
         // ⚠️ MOLA7ADA: Ila kan Wallet 3ndk Entité (Classe) bo7dha, khassk d-dir: passager.getWallet().getSolde()
         // Hna nfhtardou anaka dayr l-Wallet fl-Utilisateur nishan (awla getSolde())
         if (passager.getWallet().getSolde().compareTo(montantTotal) < 0) {
-            return "❌ Erreur: L'étudiant ma-3ndouch solde kafi f l'Wallet dyalo!";
+            return "❌ Erreur : L'étudiant ne dispose pas d'un solde suffisant dans son portefeuille !";
         }
 
         // 4. Kan-nqssou l-flouss mn l-passager w kan-zidouhom l-conducteur
@@ -118,7 +129,7 @@ public class ReservationController {
         trajetRepository.save(trajet);
         reservationTrajetRepository.save(res);
 
-        return "✅ Demande Acceptée w l-flouss t-qet3ou b naja7!";
+        return "✅ Demande acceptée et le paiement a été effectué avec succès !";
     }
 
     @GetMapping("/mes-reservations/{passagerId}")
@@ -140,6 +151,6 @@ public class ReservationController {
 
 
 
-        return "❌ Erreur: Réservation ma-kaynach!";
+        return "❌ Erreur : La réservation n'existe pas !";
     }
 }

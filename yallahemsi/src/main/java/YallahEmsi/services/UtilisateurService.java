@@ -9,38 +9,38 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@Service // Katgoul l'Spring: "Hadi hiya l'Kouzina (La logique)"
+@Service // Indique à Spring : "Ceci est la couche logique métier"
 public class UtilisateurService {
 
-    // Kan-jibou l'Magaza dyal Utilisateur w dyal CNE bach n-9elbo fihom
+    // Injection des repositories Utilisateur et CNEValide
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
     @Autowired
     private CNEValideRepository cneValideRepository;
 
-    // --- Fonction bach n-ssjlou Etudiant jdid ---
+    // --- Fonction pour inscrire un nouvel étudiant ---
     public String inscrireEtudiant(Utilisateur nouvelEtudiant) {
 
-        // 1. N-verifiw wach had l'CNE d'bsa7 kayn f l'EMSI (table CNE_Valide)
+        // 1. Vérifier si le CNE existe réellement dans la table CNE_Valide
         Optional<CNEValide> cneExiste = cneValideRepository.findById(nouvelEtudiant.getCne());
 
         if (cneExiste.isEmpty()) {
-            return "Erreur: Had l'CNE makaynch f la liste dyal l'EMSI!";
+            return "Erreur : Ce CNE n'existe pas dans la liste de l'EMSI !";
         }
 
-        // 2. N-verifiw wach had l'Email awla l'CNE deja tsjjel bihom chi wa7d f l'appli
+        // 2. Vérifier si l'email ou le CNE sont déjà utilisés
         if (utilisateurRepository.findByEmail(nouvelEtudiant.getEmail()).isPresent()) {
-            return "Erreur: Had l'Email deja m-ssjel biha chi wa7d!";
+            return "Erreur : Cet email est déjà utilisé par un autre utilisateur !";
         }
         if (utilisateurRepository.findByCne(nouvelEtudiant.getCne()).isPresent()) {
-            return "Erreur: Had l'CNE deja 3ndou compte!";
+            return "Erreur : Ce CNE possède déjà un compte !";
         }
 
-        // 3. Ila kan kolchi n9i, n-3tiwh l'Role 'etudiant' w n-khebiwh f MySQL
+        // 3. Si tout est correct, attribuer le rôle 'etudiant' puis enregistrer dans MySQL
         nouvelEtudiant.setRole(Utilisateur.Role.etudiant);
         utilisateurRepository.save(nouvelEtudiant);
 
-        return "Mabrouk! T-ssjelti b naja7 a " + nouvelEtudiant.getNom();
+        return "Félicitations ! Inscription réussie pour " + nouvelEtudiant.getNom();
     }
 }

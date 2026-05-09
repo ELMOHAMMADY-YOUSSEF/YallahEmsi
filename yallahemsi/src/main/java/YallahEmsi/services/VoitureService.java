@@ -18,30 +18,30 @@ public class VoitureService {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
-    // --- Fonction bach n-zidou tomobil jdida ---
+    // --- Fonction pour ajouter une nouvelle voiture ---
     public String ajouterVoiture(Integer utilisateurId, Voiture nouvelleVoiture) {
 
-        // 1. N9elbo 3la l'étudiant f l'Magaza
+        // 1. Recherche de l'utilisateur dans la base de données
         Optional<Utilisateur> userOpt = utilisateurRepository.findById(utilisateurId);
         if (userOpt.isEmpty()) {
-            return "Erreur: Had l'utilisateur makaynch!";
+            return "❌ Erreur : Cet utilisateur n'existe pas !";
         }
 
         Utilisateur etudiant = userOpt.get();
 
-        // 2. N-verifiw wach l'matricule dyal tomobil machi m3awd (Déjà m-ssjel)
+        // 2. Vérifier si le matricule de la voiture existe déjà
         if (voitureRepository.findByMatricule(nouvelleVoiture.getMatricule()).isPresent()) {
-            return "Erreur: Had l'matricule deja kayn f systeme!";
+            return "❌ Erreur : Ce matricule existe déjà dans le système !";
         }
 
-        // 3. N-rbtou tomobil b l'étudiant w n-bdelo lih l'Role
+        // 3. Lier la voiture à l'utilisateur et changer son rôle
         nouvelleVoiture.setConducteur(etudiant);
-        etudiant.setRole(Utilisateur.Role.conducteur); // Daba wla Chauffeur!
+        etudiant.setRole(Utilisateur.Role.conducteur); // Devient conducteur
 
-        // 4. N-sauvegardiw kolchi f MySQL
+        // 4. Sauvegarde dans la base de données
         voitureRepository.save(nouvelleVoiture);
         utilisateurRepository.save(etudiant);
 
-        return "Mabrouk! Tomobil " + nouvelleVoiture.getMarque() + " t-zadate w nta daba Conducteur a " + etudiant.getNom();
+        return "✔ Félicitations ! La voiture " + nouvelleVoiture.getMarque() + " a été ajoutée et vous êtes maintenant conducteur " + etudiant.getNom();
     }
 }

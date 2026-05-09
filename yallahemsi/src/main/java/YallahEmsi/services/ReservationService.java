@@ -24,29 +24,29 @@ public class ReservationService {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
-    // --- Fonction bach l'etudiant y-reservi blassa ---
+    // --- Fonction pour permettre à l'étudiant de réserver une place ---
     public String reserverTrajet(Integer passagerId, Integer trajetId, Integer nombrePlaces) {
 
-        // 1. N-9elbo 3la l'Trajet w l'Passager
+        // 1. Recherche du trajet et du passager
         Optional<Trajet> trajetOpt = trajetRepository.findById(trajetId);
         Optional<Utilisateur> passagerOpt = utilisateurRepository.findById(passagerId);
 
         if (trajetOpt.isEmpty() || passagerOpt.isEmpty()) {
-            return "Erreur: L'Trajet awla L'Passager makaynch!";
+            return "❌ Erreur : Le trajet ou le passager n'existe pas !";
         }
 
         Trajet trajet = trajetOpt.get();
         Utilisateur passager = passagerOpt.get();
 
-        // 2. N-verifiw wach baqin l'blays khawyin f tomobil
+        // 2. Vérifier s'il reste des places disponibles
         if (trajet.getPlacesDisponibles() < nombrePlaces) {
-            return "Erreur: Sme7 lina, ba9in ghir " + trajet.getPlacesDisponibles() + " blays f had l'trajet.";
+            return "❌ Erreur : Désolé, il ne reste que " + trajet.getPlacesDisponibles() + " places dans ce trajet.";
         }
 
-        // 3. N-7esbou l'prix total (nombrePlaces * prixParPlace)
+        // 3. Calcul du prix total (nombrePlaces * prixParPlace)
         BigDecimal total = trajet.getPrixParPlace().multiply(new BigDecimal(nombrePlaces));
 
-        // 4. N-sawbou l'Reservation jdida
+        // 4. Création de la réservation
         ReservationTrajet reservation = new ReservationTrajet();
         reservation.setPassager(passager);
         reservation.setTrajet(trajet);
@@ -54,13 +54,13 @@ public class ReservationService {
         reservation.setMontantTotal(total);
         reservation.setStatutReservation(ReservationTrajet.StatutReservation.confirmee);
 
-        // 5. N-nqssou l'blays mn tomobil
+        // 5. Mise à jour des places disponibles
         trajet.setPlacesDisponibles(trajet.getPlacesDisponibles() - nombrePlaces);
 
-        // 6. N-sauvegardiw kolchi
+        // 6. Sauvegarde
         reservationRepository.save(reservation);
         trajetRepository.save(trajet);
 
-        return "Mabrouk a " + passager.getNom() + "! Réserviti " + nombrePlaces + " blassa. L'Prix total howa: " + total + " MAD.";
+        return "✔ Félicitations " + passager.getNom() + " ! Vous avez réservé " + nombrePlaces + " place(s). Montant total : " + total + " MAD.";
     }
 }

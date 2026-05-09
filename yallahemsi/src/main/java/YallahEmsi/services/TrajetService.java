@@ -19,26 +19,26 @@ public class TrajetService {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
-    // --- Fonction 1 : Conducteur kay-publier trajet jdid ---
+    // --- Fonction 1 : Le conducteur publie un nouveau trajet ---
     public String publierTrajet(Trajet trajet) {
 
-        // N-verifiw wach l'utilisateur li bgha y-publier had trajet d'bsa7 "conducteur"
+        // Vérifier si l'utilisateur qui veut publier le trajet est bien un conducteur
         Optional<Utilisateur> conducteurOpt = utilisateurRepository.findById(trajet.getConducteur().getId());
 
         if (conducteurOpt.isEmpty() || conducteurOpt.get().getRole() != Utilisateur.Role.conducteur) {
-            return "Erreur: Had l'utilisateur machi conducteur awla makaynch!";
+            return "❌ Erreur : Cet utilisateur n'est pas un conducteur ou n'existe pas !";
         }
 
-        // N-3tiw l'trajet statut "en_attente" par defaut
+        // Définir le statut du trajet à "en attente" par défaut
         trajet.setStatut(Trajet.StatutTrajet.en_attente);
 
-        // N-sauvegardiw l'trajet f MySQL
+        // Sauvegarder le trajet dans la base de données
         trajetRepository.save(trajet);
 
-        return "Mabrouk! L'Trajet t-publia b naja7.";
+        return "✔ Félicitations ! Le trajet a été publié avec succès.";
     }
 
-    // --- Fonction 2 : Njibou ga3 les trajets bach les etudiants y-choufouhom ---
+    // --- Fonction 2 : Récupérer tous les trajets pour affichage aux étudiants ---
     public List<Trajet> voirTousLesTrajets() {
         return trajetRepository.findAll();
     }

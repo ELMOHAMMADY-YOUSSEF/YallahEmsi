@@ -24,7 +24,7 @@ public class PaiementService {
 
         Optional<ReservationTrajet> resOpt = reservationRepository.findById(reservationId);
         if (resOpt.isEmpty()) {
-            return "Erreur: L'Réservation makaynach!";
+            return "❌ Erreur : La réservation n'existe pas !";
         }
         ReservationTrajet res = resOpt.get();
 
@@ -32,7 +32,7 @@ public class PaiementService {
         Optional<Wallet> walletPassagerOpt = walletRepository.findByUtilisateurId(res.getPassager().getId());
 
         if (walletPassagerOpt.isEmpty() || walletPassagerOpt.get().getSolde().compareTo(res.getMontantTotal()) < 0) {
-            return "Erreur: Solde insuffisant! Sserji l'wallet dyalk b3da.";
+            return "❌ Erreur : Solde insuffisant ! Veuillez recharger votre wallet.";
         }
 
         Wallet walletPassager = walletPassagerOpt.get();
@@ -59,6 +59,6 @@ public class PaiementService {
         paiement.setStatutPaiement(Paiement.StatutPaiement.accepte);
         paiementRepository.save(paiement);
 
-        return "L'khelass daze b naja7! Tqet3at " + res.getMontantTotal() + " MAD mn 3nd " + res.getPassager().getNom();
+        return "✔ Paiement effectué avec succès ! Montant débité : " + res.getMontantTotal() + " MAD pour " + res.getPassager().getNom();
     }
 }

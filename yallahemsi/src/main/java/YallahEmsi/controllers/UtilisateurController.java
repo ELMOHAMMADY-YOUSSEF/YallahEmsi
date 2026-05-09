@@ -55,7 +55,7 @@ public class UtilisateurController {
         if (user != null) {
             return user; // Kan-rddou user kamel (bach React y-khbiyh f localStorage w y-3qel 3la smito)
         } else {
-            throw new RuntimeException("Email awla mot de passe ghalet");
+            throw new RuntimeException("Email ou mot de passe incorrect");
         }
     }
 }

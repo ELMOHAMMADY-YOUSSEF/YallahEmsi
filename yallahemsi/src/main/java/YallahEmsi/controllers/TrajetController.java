@@ -8,6 +8,8 @@ import java.nio.file.Paths;
 import java.util.UUID;
 import org.springframework.http.MediaType;
 
+import java.util.Optional;
+
 import YallahEmsi.entities.Trajet;
 import YallahEmsi.repositories.TrajetRepository;
 import YallahEmsi.services.TrajetService;
@@ -55,5 +57,43 @@ public class TrajetController {
     @GetMapping("/mes-trajets/{conducteurId}")
     public List<Trajet> getMesTrajets(@PathVariable Integer conducteurId) {
         return trajetRepository.findByConducteurId(conducteurId);
+    }
+
+    // 1. API bach l-Conducteur y-msse7 l-Trajet dyalo
+    @DeleteMapping("/supprimer/{id}")
+    public String supprimerTrajet(@PathVariable Integer id) {
+        try {
+            // Mola7ada: Ila kanou 3ndou des réservations, khass JPA t-koun fiha CascadeType.REMOVE
+            // Awla n-goulou lih ma-yqderch y-msse7 ila kanou nass m-reservyin
+            trajetRepository.deleteById(id);
+            return "✅ Trajet supprimé avec succès !";
+        } catch (Exception e) {
+            return "❌ Erreur: Impossible de supprimer ce trajet (Peut-être qu'il y a déjà des passagers).";
+        }
+    }
+
+    // 2. API bach l-Conducteur y-beddel l-waqt awla l-prix
+    @PutMapping("/modifier/{id}")
+    public String modifierTrajet(@PathVariable Integer id, @RequestBody Trajet trajetModifie) {
+        Optional<Trajet> trajetOpt = trajetRepository.findById(id);
+
+        if (trajetOpt.isPresent()) {
+            Trajet trajetExistant = trajetOpt.get();
+
+            // Kan-beddlou ghir dakchi li bgha (L-waqt, Prix, Blayss)
+            if(trajetModifie.getDateHeureDepart() != null) {
+                trajetExistant.setDateHeureDepart(trajetModifie.getDateHeureDepart());
+            }
+            if(trajetModifie.getPrixParPlace() != null) {
+                trajetExistant.setPrixParPlace(trajetModifie.getPrixParPlace());
+            }
+            if(trajetModifie.getPlacesDisponibles() != null) {
+                trajetExistant.setPlacesDisponibles(trajetModifie.getPlacesDisponibles());
+            }
+
+            trajetRepository.save(trajetExistant);
+            return "✅ Trajet modifié avec succès !";
+        }
+        return "❌ Erreur: Trajet introuvable.";
     }
 }

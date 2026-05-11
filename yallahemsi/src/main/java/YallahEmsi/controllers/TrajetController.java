@@ -1,4 +1,6 @@
 package YallahEmsi.controllers;
+import YallahEmsi.entities.ReservationTrajet;
+import YallahEmsi.repositories.ReservationTrajetRepository;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -59,16 +61,45 @@ public class TrajetController {
         return trajetRepository.findByConducteurId(conducteurId);
     }
 
+
+    @Autowired
+    private ReservationTrajetRepository reservationTrajetRepository;
     // 1. API bach l-Conducteur y-msse7 l-Trajet dyalo
     @DeleteMapping("/supprimer/{id}")
     public String supprimerTrajet(@PathVariable Integer id) {
         try {
-            // Mola7ada: Ila kanou 3ndou des réservations, khass JPA t-koun fiha CascadeType.REMOVE
-            // Awla n-goulou lih ma-yqderch y-msse7 ila kanou nass m-reservyin
+            // 1. N-jbdou ga3 les réservations dyal had l-trajet
+            List<ReservationTrajet> reservations = reservationTrajetRepository.findByTrajetId(id);
+
+            // 2. Kan-vérifiw wach kayna chi réservation baqa "Active" (Confirmée awla En attente)
+            boolean hasActiveReservations = false;
+            for (ReservationTrajet res : reservations) {
+                // Ila lqina ghir we7da machi "annulee", ran-7bsou kolchi
+                if (res.getStatutReservation() != ReservationTrajet.StatutReservation.annulee) {
+                    hasActiveReservations = true;
+                    break;
+                }
+            }
+
+            // 3. Ila lqina passagers baqin active, kan-mn3ouh y-msse7
+            if (hasActiveReservations) {
+                return "❌ Erreur : Impossible de supprimer ce trajet car vous avez des passagers en attente ou confirmés !";
+            }
+
+            // 4. Ila wslna hna, y3ni l-blays khawyin (0 réservation) AWLA ga3 les réservations "annulee".
+            // Khassna n-msse7ou hadouk les réservations annulées mn MySQL bach y-khellina n-msse7ou l-Trajet.
+            if (!reservations.isEmpty()) {
+                reservationTrajetRepository.deleteAll(reservations);
+            }
+
+            // 5. Daba n-qdrou n-msse7ou l-Trajet b amane
             trajetRepository.deleteById(id);
+
             return "✅ Trajet supprimé avec succès !";
+
         } catch (Exception e) {
-            return "❌ Erreur: Impossible de supprimer ce trajet (Peut-être qu'il y a déjà des passagers).";
+            e.printStackTrace();
+            return "❌ Erreur lors de la suppression du trajet.";
         }
     }
 

@@ -16,4 +16,5 @@ public interface ReservationTrajetRepository extends JpaRepository<ReservationTr
     );
 
     List<ReservationTrajet> findByPassagerId(Integer passagerId);
+    List<ReservationTrajet> findByTrajetId(Integer trajetId);
 }

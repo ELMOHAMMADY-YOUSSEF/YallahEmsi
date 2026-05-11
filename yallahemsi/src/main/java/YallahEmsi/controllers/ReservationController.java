@@ -28,7 +28,6 @@ public class ReservationController {
     private UtilisateurRepository utilisateurRepository;
 
     // 1. L'Étudiant (Passager) kay-ssift Demande dyal Réservation
-    // 1. L'Étudiant (Passager) kay-ssift Demande dyal Réservation
     @PostMapping("/nouvelle")
     public String nouvelleReservation(@RequestParam Integer passagerId,
                                       @RequestParam Integer trajetId,
@@ -52,7 +51,7 @@ public class ReservationController {
         // L'Calcul dyal l'Flouss (Prix par place * Nombre de places)
         BigDecimal montant = trajet.getPrixParPlace().multiply(new BigDecimal(places));
 
-        // 🔥 VERIFICATION DYAL L-WALLET (JDID) 🔥
+        // 🔥 VERIFICATION DYAL L-WALLET 🔥
         if (passager.getWallet() == null || passager.getWallet().getSolde() == null) {
             return "❌ Erreur: Portefeuille introuvable. Veuillez recharger votre compte.";
         }
@@ -73,7 +72,8 @@ public class ReservationController {
 
         reservationTrajetRepository.save(res);
 
-        return "✅ Félicitations ! La demande a été envoyée au conducteur, veuillez attendre son acceptation.";
+        // 🔥 BEDDELT L-MESSAGE HNA BACH Y-TL3 LIK SUCCÈS F REACT 🔥
+        return "✅ Mabrouk ! La demande a été envoyée au conducteur, veuillez attendre son acceptation.";
     }
 
     // 2. L'Conducteur kay-chouf ga3 les demandes li baqin "EN ATTENTE"
@@ -85,7 +85,6 @@ public class ReservationController {
         );
     }
 
-    // 3. L'Conducteur kay-Accepter l'Demande (Hna fin kan-nqssou l'blays)
     // 3. L'Conducteur kay-Accepter l'Demande (Hna fin kan-nqssou l'blays w l-FLOUSS 💸)
     @PostMapping("/accepter/{reservationId}")
     public String accepterReservation(@PathVariable Integer reservationId) {
@@ -109,8 +108,6 @@ public class ReservationController {
         BigDecimal montantTotal = res.getMontantTotal();
 
         // 3. Kan-verifiw wach l-passager 3ndou flouss kafya f l-Wallet dyalo
-        // ⚠️ MOLA7ADA: Ila kan Wallet 3ndk Entité (Classe) bo7dha, khassk d-dir: passager.getWallet().getSolde()
-        // Hna nfhtardou anaka dayr l-Wallet fl-Utilisateur nishan (awla getSolde())
         if (passager.getWallet().getSolde().compareTo(montantTotal) < 0) {
             return "❌ Erreur : L'étudiant ne dispose pas d'un solde suffisant dans son portefeuille !";
         }
@@ -123,7 +120,7 @@ public class ReservationController {
         res.setStatutReservation(ReservationTrajet.StatutReservation.confirmee);
         trajet.setPlacesDisponibles(trajet.getPlacesDisponibles() - res.getPlacesReservees());
 
-        // 6. Kan-sauvegardiw kolchi f MySQL (Darouri n-sauvegardiw Utilisateurs bach y-tbdl l-Wallet f Base de données)
+        // 6. Kan-sauvegardiw kolchi f MySQL
         utilisateurRepository.save(passager);
         utilisateurRepository.save(conducteur);
         trajetRepository.save(trajet);
@@ -148,9 +145,71 @@ public class ReservationController {
             reservationTrajetRepository.save(res);
             return "❌ Demande Refusée.";
         }
-
-
-
         return "❌ Erreur : La réservation n'existe pas !";
+    }
+
+    // 🔥 VERSION SÉCURISÉE DYAL L-ANNULATION (AVEC TRY-CATCH W WALLET CHECK) 🔥
+    @PostMapping("/annuler/{reservationId}")
+    public String annulerReservation(@PathVariable Integer reservationId) {
+        try {
+            Optional<ReservationTrajet> resOpt = reservationTrajetRepository.findById(reservationId);
+
+            if (resOpt.isEmpty()) {
+                return "❌ Erreur: Réservation introuvable !";
+            }
+
+            ReservationTrajet res = resOpt.get();
+
+            // On ne peut annuler que si c'est déjà "confirmée" ou "en_attente"
+            if (res.getStatutReservation() == ReservationTrajet.StatutReservation.annulee) {
+                return "❌ Cette réservation est déjà annulée.";
+            }
+
+            Trajet trajet = res.getTrajet();
+            Utilisateur passager = res.getPassager();
+            Utilisateur conducteur = trajet.getConducteur();
+            BigDecimal montantARembourser = res.getMontantTotal();
+
+            // --- LOGIQUE DE REMBOURSEMENT ---
+            if (res.getStatutReservation() == ReservationTrajet.StatutReservation.confirmee) {
+
+                // Vérification de sécurité (Eviter NullPointerException)
+                if (passager.getWallet() == null) {
+                    return "❌ Erreur: Le passager n'a pas de Wallet.";
+                }
+                if (conducteur.getWallet() == null) {
+                    return "❌ Erreur: Le conducteur n'a pas de Wallet.";
+                }
+
+                // 1. Rendre l'argent à l'étudiant
+                passager.getWallet().setSolde(passager.getWallet().getSolde().add(montantARembourser));
+
+                // 2. Reprendre l'argent au conducteur
+                conducteur.getWallet().setSolde(conducteur.getWallet().getSolde().subtract(montantARembourser));
+
+                // 3. Libérer la place dans le trajet
+                trajet.setPlacesDisponibles(trajet.getPlacesDisponibles() + res.getPlacesReservees());
+
+                // Sauvegarder les changements
+                utilisateurRepository.save(passager);
+                utilisateurRepository.save(conducteur);
+                trajetRepository.save(trajet);
+            }
+
+            // --- CHANGER LE STATUT ---
+            res.setStatutReservation(ReservationTrajet.StatutReservation.annulee);
+            reservationTrajetRepository.save(res);
+
+            return "✅ Réservation annulée. Le montant a été remboursé et la place est libérée !";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "❌ Erreur serveur lors de l'annulation : " + e.getMessage();
+        }
+    }
+
+    @GetMapping("/trajet/{trajetId}")
+    public List<ReservationTrajet> getReservationsByTrajet(@PathVariable Integer trajetId) {
+        return reservationTrajetRepository.findByTrajetId(trajetId);
     }
 }
